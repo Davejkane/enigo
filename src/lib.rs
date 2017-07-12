@@ -28,7 +28,8 @@
 //! its purpose is to simply write unicode characters. This is independent of
 //! the keyboardlayout. Please note that
 //! you're not be able to use modifier keys like Control
-//! to influence the outcome. If you want to use modifier keys to e.g. copy/paste
+//! to influence the outcome. If you want to use modifier keys to e.g.
+//! copy/paste
 //! use the Layout variant. Please note that this is indeed layout dependent.
 
 //! # Examples
@@ -131,134 +132,6 @@ pub enum MouseButton {
     ScrollLeft,
     /// Left right button
     ScrollRight,
-}
-
-/// Representing an interface and a set of mouse functions every
-/// operating system implementation _should_ implement.
-pub trait MouseControllable {
-    /// Lets the mouse cursor move to the specified x and y coordinates.
-    ///
-    /// The topleft corner of your monitor screen is x=0 y=0. Move
-    /// the cursor down the screen by increasing the y and to the right
-    /// by increasing x coordinate.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_move_to(500, 200);
-    /// ```
-    fn mouse_move_to(&mut self, x: i32, y: i32);
-
-    /// Lets the mouse cursor move the specified amount in the x and y
-    /// direction.
-    ///
-    /// The amount specified in the x and y parameters are added to the
-    /// current location of the mouse cursor. A positive x values lets
-    /// the mouse cursor move an amount of `x` pixels to the right. A negative
-    /// value for `x` lets the mouse cursor go to the left. A positive value
-    /// of y
-    /// lets the mouse cursor go down, a negative one lets the mouse cursor go
-    /// up.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_move_relative(100, 100);
-    /// ```
-    fn mouse_move_relative(&mut self, x: i32, y: i32);
-
-    /// Push down one of the mouse buttons
-    ///
-    /// Push down the mouse button specified by the parameter `button` of
-    /// type [MouseButton](enum.MouseButton.html)
-    /// and holds it until it is released by
-    /// [mouse_up](trait.MouseControllable.html#tymethod.mouse_up).
-    /// Calls to [mouse_move_to](trait.MouseControllable.html#tymethod.mouse_move_to) or
-    /// [mouse_move_relative](trait.MouseControllable.html#tymethod.mouse_move_relative)
-    /// will work like expected and will e.g. drag widgets or highlight text.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_down(MouseButton::Left);
-    /// ```
-    fn mouse_down(&mut self, button: MouseButton);
-
-    /// Lift up a pushed down mouse button
-    ///
-    /// Lift up a previously pushed down button (by invoking
-    /// [mouse_down](trait.MouseControllable.html#tymethod.mouse_down)).
-    /// If the button was not pushed down or consecutive calls without
-    /// invoking [mouse_down](trait.MouseControllable.html#tymethod.mouse_down)
-    /// will emit lift up events. It depends on the
-    /// operating system whats actually happening – my guess is it will just
-    /// get ignored.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_up(MouseButton::Right);
-    /// ```
-    fn mouse_up(&mut self, button: MouseButton);
-
-    /// Click a mouse button
-    ///
-    /// it's esentially just a consecutive invokation of
-    /// [mouse_down](trait.MouseControllable.html#tymethod.mouse_down) followed
-    /// by a [mouse_up](trait.MouseControllable.html#tymethod.mouse_up). Just
-    /// for
-    /// convenience.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_click(MouseButton::Right);
-    /// ```
-    fn mouse_click(&mut self, button: MouseButton);
-
-    /// Scroll the mouse (wheel) left or right
-    ///
-    /// Positive numbers for length lets the mouse wheel scroll to the right
-    /// and negative ones to the left. The value that is specified translates
-    /// to `lines` defined by the operating system and is essentially one 15°
-    /// (click)rotation on the mouse wheel. How many lines it moves depends
-    /// on the current setting in the operating system.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_scroll_x(2);
-    /// ```
-    fn mouse_scroll_x(&mut self, length: i32);
-
-    /// Scroll the mouse (wheel) up or down
-    ///
-    /// Positive numbers for length lets the mouse wheel scroll down
-    /// and negative ones up. The value that is specified translates
-    /// to `lines` defined by the operating system and is essentially one 15°
-    /// (click)rotation on the mouse wheel. How many lines it moves depends
-    /// on the current setting in the operating system.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// use enigo::*;
-    /// let mut enigo = Enigo::new();
-    /// enigo.mouse_scroll_y(2);
-    /// ```
-    fn mouse_scroll_y(&mut self, length: i32);
 }
 
 /// Keys to be used TODO(dustin): make a real documentation
@@ -408,6 +281,183 @@ pub enum Key {
     /// raw keycode eg 0x38
     Raw(u16),
 }
+#[cfg(feature = "with_serde")]
+#[derive(Serialize, Deserialize, Debug)]
+/// The mouse position.
+/// Some fields may not be filled in, depending on operating system.
+pub struct MousePosition {
+    /// The x position of the cursor.
+    pub x: i32,
+    /// The y position of the cursor.
+    pub y: i32,
+    /// The x position of the cursor inside the current window.
+    /// May or may not be None, depending on OS.
+    pub win_x: Option<i32>,
+    /// The y position of the cursor inside the current window.
+    /// May or may not be None, depending on OS.
+    pub win_y: Option<i32>,
+    /// The state of the modifier keys and pointer buttons.
+    /// Extract using bitwise operations.
+    /// May or may not be None, depending on OS.
+    pub mask: Option<i32>,
+}
+#[cfg(not(feature = "with_serde"))]
+#[derive(Debug)]
+/// The mouse position.
+/// Some fields may not be filled in, depending on operating system.
+pub struct MousePosition {
+    /// The x position of the cursor.
+    pub x: i32,
+    /// The y position of the cursor.
+    pub y: i32,
+    /// The x position of the cursor inside the current window.
+    /// May or may not be None, depending on OS.
+    pub win_x: Option<i32>,
+    /// The y position of the cursor inside the current window.
+    /// May or may not be None, depending on OS.
+    pub win_y: Option<i32>,
+    /// The state of the modifier keys and pointer buttons.
+    /// Extract using bitwise operations.
+    /// May or may not be None, depending on OS.
+    pub mask: Option<i32>,
+}
+
+/// Representing an interface and a set of mouse functions every
+/// operating system implementation _should_ implement.
+pub trait MouseControllable {
+    /// Returns the cursor (x, y) position.
+    ///
+    /// If you're planning to use this to move the mouse relative, don't.
+    /// The mouse_move_relative may be more efficient on certain operating
+    /// systems.
+    fn mouse_get_pos(&mut self) -> MousePosition;
+
+    /// Lets the mouse cursor move to the specified x and y coordinates.
+    ///
+    /// The topleft corner of your monitor screen is x=0 y=0. Move
+    /// the cursor down the screen by increasing the y and to the right
+    /// by increasing x coordinate.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_move_to(500, 200);
+    /// ```
+    fn mouse_move_to(&mut self, x: i32, y: i32);
+
+    /// Lets the mouse cursor move the specified amount in the x and y
+    /// direction.
+    ///
+    /// The amount specified in the x and y parameters are added to the
+    /// current location of the mouse cursor. A positive x values lets
+    /// the mouse cursor move an amount of `x` pixels to the right. A negative
+    /// value for `x` lets the mouse cursor go to the left. A positive value
+    /// of y
+    /// lets the mouse cursor go down, a negative one lets the mouse cursor go
+    /// up.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_move_relative(100, 100);
+    /// ```
+    fn mouse_move_relative(&mut self, x: i32, y: i32);
+
+    /// Push down one of the mouse buttons
+    ///
+    /// Push down the mouse button specified by the parameter `button` of
+    /// type [MouseButton](enum.MouseButton.html)
+    /// and holds it until it is released by
+    /// [mouse_up](trait.MouseControllable.html#tymethod.mouse_up).
+    /// Calls to [mouse_move_to](trait.MouseControllable.html#tymethod.
+    /// mouse_move_to) or
+    /// [mouse_move_relative](trait.MouseControllable.html#tymethod.
+    /// mouse_move_relative)
+    /// will work like expected and will e.g. drag widgets or highlight text.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_down(MouseButton::Left);
+    /// ```
+    fn mouse_down(&mut self, button: MouseButton);
+
+    /// Lift up a pushed down mouse button
+    ///
+    /// Lift up a previously pushed down button (by invoking
+    /// [mouse_down](trait.MouseControllable.html#tymethod.mouse_down)).
+    /// If the button was not pushed down or consecutive calls without
+    /// invoking [mouse_down](trait.MouseControllable.html#tymethod.mouse_down)
+    /// will emit lift up events. It depends on the
+    /// operating system whats actually happening – my guess is it will just
+    /// get ignored.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_up(MouseButton::Right);
+    /// ```
+    fn mouse_up(&mut self, button: MouseButton);
+
+    /// Click a mouse button
+    ///
+    /// it's esentially just a consecutive invokation of
+    /// [mouse_down](trait.MouseControllable.html#tymethod.mouse_down) followed
+    /// by a [mouse_up](trait.MouseControllable.html#tymethod.mouse_up). Just
+    /// for
+    /// convenience.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_click(MouseButton::Right);
+    /// ```
+    fn mouse_click(&mut self, button: MouseButton);
+
+    /// Scroll the mouse (wheel) left or right
+    ///
+    /// Positive numbers for length lets the mouse wheel scroll to the right
+    /// and negative ones to the left. The value that is specified translates
+    /// to `lines` defined by the operating system and is essentially one 15°
+    /// (click)rotation on the mouse wheel. How many lines it moves depends
+    /// on the current setting in the operating system.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_scroll_x(2);
+    /// ```
+    fn mouse_scroll_x(&mut self, length: i32);
+
+    /// Scroll the mouse (wheel) up or down
+    ///
+    /// Positive numbers for length lets the mouse wheel scroll down
+    /// and negative ones up. The value that is specified translates
+    /// to `lines` defined by the operating system and is essentially one 15°
+    /// (click)rotation on the mouse wheel. How many lines it moves depends
+    /// on the current setting in the operating system.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use enigo::*;
+    /// let mut enigo = Enigo::new();
+    /// enigo.mouse_scroll_y(2);
+    /// ```
+    fn mouse_scroll_y(&mut self, length: i32);
+}
 
 /// Representing an interface and a set of keyboard functions every
 /// operating system implementation _should_ implement.
@@ -417,14 +467,17 @@ pub trait KeyboardControllable {
     /// Typing {+SHIFT}hello{-SHIFT} becomes HELLO.
     /// TODO: Full documentation
     fn key_sequence_parse(&mut self, sequence: &str)
-        where Self: Sized
+    where
+        Self: Sized,
     {
-        self.key_sequence_parse_try(sequence)
-            .expect("Could not parse sequence");
+        self.key_sequence_parse_try(sequence).expect(
+            "Could not parse sequence",
+        );
     }
     /// Same as key_sequence_parse except returns any errors
     fn key_sequence_parse_try(&mut self, sequence: &str) -> Result<(), parser::ParseError>
-        where Self: Sized
+    where
+        Self: Sized,
     {
         parser::parse(self, sequence)
     }
@@ -452,11 +505,12 @@ pub trait KeyboardControllable {
     /// [key_down](trait.KeyboardControllable.html#tymethod.key_down)
     fn key_up(&mut self, key: Key);
 
-    ///Much like the [key_down](trait.KeyboardControllable.html#tymethod.key_down) and [key_up](trait.KeyboardControllable.html#tymethod.key_up)
-    ///function they're just invoked consecutively
+    /// Much like the
+    /// [key_down](trait.KeyboardControllable.html#tymethod.key_down)
+    /// and [key_up](trait.KeyboardControllable.html#tymethod.key_up)
+    /// function they're just invoked consecutively
     fn key_click(&mut self, key: Key);
 }
-
 
 #[cfg(test)]
 mod tests {}
