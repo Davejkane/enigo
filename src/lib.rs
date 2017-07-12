@@ -208,7 +208,7 @@ pub enum Key {
     Raw(u16),
 }
 
-///Keys to be used TODO(dustin): make real documentation
+/// Keys to be used TODO(dustin): make real documentation
 #[cfg(not(feature = "with_serde"))]
 #[derive(Debug)]
 pub enum Key {
